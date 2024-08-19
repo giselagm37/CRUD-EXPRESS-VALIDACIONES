@@ -4,6 +4,7 @@ const Joi = require('joi');
 
 class InscripcionController{
     constructor(){}
+
     async consultarInscripciones(req,res){
         try{
             const [rows]=await db.query(`SELECT estudiantes.nombre AS estudiante, cursos.nombre AS curso 
@@ -16,6 +17,7 @@ class InscripcionController{
             res.status(500).send(err.message);
         }
     }
+
     async consultarxAlumno(req,res){
         const {id}=req.params;
         try{
@@ -30,6 +32,7 @@ class InscripcionController{
             res.status(500).send(err.message);
         }
     }
+    
     async consultarxCurso(req,res){
         const {id}=req.params;
         try{
@@ -45,7 +48,7 @@ class InscripcionController{
         }
     }
 
-
+ 
 async inscribir(req, res) {
 
     const { estudiante_id, curso_id } = req.body;
@@ -63,8 +66,6 @@ async inscribir(req, res) {
   if (error) {
     return res.status(400).json({ mens: error.details[0].message });
   }
-
-  
 
   try {
     await conn.beginTransaction();
@@ -107,52 +108,53 @@ async inscribir(req, res) {
   }
 }
 
-    
-    async cancelarInscripcion(req, res) {
-        const { estudiante_id, curso_id } = req.params;
-        const conn = await db.getConnection();
-      
-        try {
-          await conn.beginTransaction();
-      
-          // Verificar si el estudiante existe
-          const [estRes] = await conn.query(`SELECT COUNT(*) AS cant FROM estudiantes WHERE id=?`, [estudiante_id]);
-          if (estRes[0].cant === 0) {
-            await conn.rollback();
-            return res.status(400).json({ mens: 'Estudiante no existe' });
-          }
-      
-          // Verificar si el curso existe
-          const [curRes] = await conn.query(`SELECT COUNT(*) AS cant FROM cursos WHERE id=?`, [curso_id]);
-          if (curRes[0].cant === 0) {
-            await conn.rollback();
-            return res.status(400).json({ mens: 'Curso no existe' });
-          }
-      
-          // Verificar si la inscripción existe
-          const [existsRes] = await conn.query(`SELECT COUNT(*) AS cant FROM cursos_estudiantes WHERE estudiante_id=? AND curso_id=?`, [estudiante_id, curso_id]);
-          if (existsRes[0].cant === 0) {
-            await conn.rollback();
-            return res.status(400).json({ mens: 'La inscripción no existe' });
-          }
-      
-          // Cancelar la inscripción
-          await conn.query(`DELETE FROM cursos_estudiantes WHERE estudiante_id=? AND curso_id=?`, [estudiante_id, curso_id]);
-      
-          await conn.commit();
-          res.status(200).json({ mens: 'Inscripción cancelada' });
-        } catch (err) {
-          try {
-            await conn.rollback();
-          } catch (errRoll) {
-            res.status(500).send(errRoll.message);
-          }
-          res.status(500).send(err.message);
-        } finally {
-          conn.release();
-        }
-      }
-      
+//similar al inscribir pero con delete
+async cancelarInscripcion(req, res) {
+  const { estudiante_id, curso_id } = req.params;
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // Verificar si el estudiante existe
+    const [estRes] = await conn.query(`SELECT COUNT(*) AS cant FROM estudiantes WHERE id=?`, [estudiante_id]);
+    if (estRes[0].cant === 0) {
+      await conn.rollback();
+      return res.status(400).json({ mens: 'Estudiante no existe' });
+    }
+
+    // Verificar si el curso existe
+    const [curRes] = await conn.query(`SELECT COUNT(*) AS cant FROM cursos WHERE id=?`, [curso_id]);
+    if (curRes[0].cant === 0) {
+      await conn.rollback();
+      return res.status(400).json({ mens: 'Curso no existe' });
+    }
+
+    // Verificar si la inscripción existe
+    const [existsRes] = await conn.query(`SELECT COUNT(*) AS cant FROM cursos_estudiantes WHERE estudiante_id=? AND curso_id=?`, [estudiante_id, curso_id]);
+    if (existsRes[0].cant === 0) {
+      await conn.rollback();
+      return res.status(400).json({ mens: 'La inscripción no existe' });
+    }
+
+    // Cancelar la inscripción
+    await conn.query(`DELETE FROM cursos_estudiantes WHERE estudiante_id=? AND curso_id=?`, [estudiante_id, curso_id]);
+
+    await conn.commit();
+    res.status(200).json({ mens: 'Inscripción cancelada' });
+  } catch (err) {
+    try {
+      await conn.rollback();
+    } catch (errRoll) {
+      res.status(500).send(errRoll.message);
+    }
+    res.status(500).send(err.message);
+  } finally {
+    conn.release();
+  }
+}
 
 }
+    
+   
 module.exports=new InscripcionController();

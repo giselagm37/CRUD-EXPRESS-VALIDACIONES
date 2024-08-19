@@ -4,8 +4,12 @@
 //npm i mysql2
 //npm i nodemon
 //node index.js
-//npm i joi
+//npm i joi    hace validaciones
 //descargar postman para desktop
+//http://localhost:3000/inscripciones
+//http://localhost:3000/inscripciones/xcurso/7
+
+//http://localhost:3000/inscripciones/1/3       estudiante_id/curso_id          
 const express=require('express');
 const cors=require('cors');
 const port =3000;
